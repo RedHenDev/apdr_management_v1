@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SEND APDR Flow System</title>
+    <style>
+        :root {
+            --assess-color: rgba(59, 130, 246, 0.8);
+            --review-color-1: rgba(245, 158, 11, 0.8);
+            --review-color-2: rgba(168, 85, 247, 0.8);
+            --review-color-3: rgba(236, 72, 153, 0.8);
+            --arrow-color: rgba(0, 0, 0, 0.6);
+            --background-color: #f8fafc;
+            --border-color: #e2e8f0;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            line-height: 1.5;
+            background-color: var(--background-color);
+            color: #1e293b;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 1rem;
+        }
+
+        .header {
+            background: white;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .view-toggle {
+            display: flex;
+            gap: 0.5rem;
+            background: #f1f5f9;
+            padding: 0.25rem;
+            border-radius: 0.5rem;
+        }
+
+        .view-toggle button {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 0.25rem;
+            cursor: pointer;
+            background: none;
+        }
+
+        .view-toggle button.active {
+            background: white;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+
+        /* Data Entry View Styles */
+        .data-entry-view {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1rem;
+        }
+
+        .phase-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        /* Flow View Styles */
+        .flow-view {
+            display: none;
+            padding: 2rem;
+            background: white;
+            border-radius: 0.5rem;
+            min-height: 80vh;
+            position: relative;
+            overflow-y: auto;
+            max-height: calc(100vh - 100px);
+        }
+
+        .flow-node {
+            width: 250px;
+            padding: 1.25rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid rgba(0, 0, 0, 0.8);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin: 1rem;
+            text-align: center;
+        }
+
+        .flow-node:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .assess-node {
+            background: var(--assess-color);
+            color: white;
+            margin-bottom: 2rem;
+        }
+
+        .plan-node {
+            background: var(--plan-color);
+            color: white;
+        }
+
+        .review-node {
+            background: var(--review-color);
+            color: white;
+        }
+
+        .node-details {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 2rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            z-index: 100;
+            max-width: 500px;
+            width: 90%;
+        }
+
+        .node-details.visible {
+            display: block;
+        }
+
+        .cycle-container {
+            margin-top: 20px;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 3rem;
+        }
+
+        .review-container {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            margin: 1rem 0;
+            position: relative;
+        }
+
+        .arrow-container {
+            position: absolute;
+            pointer-events: none;
+        }
+
+        .arrow {
+            position: absolute;
+            background: var(--arrow-color);
+            height: 2px;
+            transform-origin: left center;
+        }
+
+        .arrow::after {
+            content: '';
+            position: absolute;
+            right: -6px;
+            top: -4px;
+            width: 0;
+            height: 0;
+            border-left: 8px solid var(--arrow-color);
+            border-top: 4px solid transparent;
+            border-bottom: 4px solid transparent;
+        }
+
+        .vertical-arrow {
+            position: absolute;
+            width: 2px;
+            background: var(--arrow-color);
+            right: 25%;
+        }
+
+        .vertical-arrow::after {
+            content: '';
+            position: absolute;
+            bottom: -6px;
+            left: -4px;
+            width: 0;
+            height: 0;
+            border-top: 8px solid var(--arrow-color);
+            border-left: 4px solid transparent;
+            border-right: 4px solid transparent;
+        }
+
+        /* Additional UI Components */
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 0.25rem;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background-color 0.2s;
+        }
+
+        .btn-primary {
+            background-color: #3b82f6;
+            color: white;
+        }
+
+        .input-group {
+            margin-bottom: 1rem;
+        }
+
+        .input-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid var(--border-color);
+            border-radius: 0.25rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>SEND APDR Flow System</h1>
+            <div class="view-toggle">
+                <button onclick="switchView('data')" class="active">Data Entry</button>
+                <button onclick="switchView('flow')">Flow Overview</button>
+            </div>
+        </header>
+
+        <!-- Data Entry View -->
+        <div id="dataEntryView" class="data-entry-view">
+            <!-- Initial Assessment -->
+            <div class="phase-card">
+                <h2>Initial Assessment</h2>
+                <div class="input-group">
+                    <label class="input-label">Student Needs Assessment</label>
+                    <textarea class="input-field" rows="4"></textarea>
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Pupil Voice</label>
+                    <textarea class="input-field" rows="4"></textarea>
+                </div>
+            </div>
+
+            <!-- Plan -->
+            <div class="phase-card">
+                <h2>Current Plan</h2>
+                <div class="input-group">
+                    <label class="input-label">Selected Interventions</label>
+                    <select class="input-field" multiple>
+                        <option>Reading Recovery</option>
+                        <option>Speech & Language Therapy</option>
+                        <option>Social Skills Group</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Review -->
+            <div class="phase-card">
+                <h2>Latest Review</h2>
+                <div class="input-group">
+                    <label class="input-label">Intervention Impact</label>
+                    <textarea class="input-field" rows="4"></textarea>
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Next Steps</label>
+                    <textarea class="input-field" rows="4"></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- Flow View -->
+        <div id="flowView" class="flow-view">
+            <div class="cycle-container">
+                <!-- Cycles will be generated by JavaScript -->
+            </div>
+        </div>
+
+        <!-- Node Details Popup -->
+        <div id="nodeDetails" class="node-details">
+            <h3 id="nodeTitle"></h3>
+            <div id="nodeContent"></div>
+            <button class="btn btn-primary" onclick="hideNodeDetails()">Close</button>
+        </div>
+    </div>
+
+    <script>
+        // View switching
+        function switchView(view) {
+            const dataView = document.getElementById('dataEntryView');
+            const flowView = document.getElementById('flowView');
+            const buttons = document.querySelectorAll('.view-toggle button');
+            
+            if (view === 'data') {
+                dataView.style.display = 'grid';
+                flowView.style.display = 'none';
+            } else {
+                dataView.style.display = 'none';
+                flowView.style.display = 'block';
+                generateCycles(3); // Generate 3 cycles initially
+            }
+            
+            buttons.forEach(button => {
+                button.classList.toggle('active', 
+                    (view === 'data' && button.textContent.includes('Data')) ||
+                    (view === 'flow' && button.textContent.includes('Flow'))
+                );
+            });
+        }
+
+        // Generate cycle nodes
+        function generateCycles(numCycles) {
+            const container = document.querySelector('.cycle-container');
+            container.innerHTML = '';
+
+            // Create initial assessment node
+            const assessNode = createNode('assess', 'Initial Assessment');
+            assessNode.style.marginBottom = '4rem';
+            container.appendChild(assessNode);
+
+            // Create review container
+            const reviewContainer = document.createElement('div');
+            reviewContainer.className = 'review-container';
+            
+            // Create review nodes with different colors
+            for (let i = 0; i < numCycles; i++) {
+                const reviewNode = createNode('review', `cycle ${i + 1}`);
+                reviewNode.style.backgroundColor = `var(--review-color-${i + 1})`;
+                reviewContainer.appendChild(reviewNode);
+
+                // Add arrow after each review except the last.
+                if (i < numCycles - 1) {
+                    const arrow = document.createElement('div');
+                    arrow.className = 'arrow';
+                    // Adjust the multiplier (64) based on your spacing needs
+                    arrow.style.top = `${(i * 100)+80}px`;
+                    arrow.style.width = '80px';
+                    arrow.style.transform = 'rotate(90deg)';
+                    arrow.style.margin = '1rem auto';
+                    reviewContainer.appendChild(arrow);
+                    console.log('Creating arrow for cycle:', i);
+                }
+            }
+            
+            container.appendChild(reviewContainer);
+        }
+
+        function createNode(type, title) {
+            const node = document.createElement('div');
+            node.className = `flow-node ${type}-node`;
+            node.innerHTML = `
+                <h3>${title}</h3>
+                <small>Click for details</small>
+            `;
+            node.onclick = () => showNodeDetails(type, title);
+            return node;
+        }
+
+        function addArrow(fromNode, toNode) {
+            if (!fromNode || !toNode) return;
+            
+            const arrow = document.createElement('div');
+            arrow.className = 'arrow';
+            
+            // Position and size calculations would go here
+            // This is a simplified version
+            arrow.style.width = '100px';
+            arrow.style.top = '50%';
+            
+            document.querySelector('.cycle-container').appendChild(arrow);
+        }
+
+        // Node details popup
+        function showNodeDetails(type, title) {
+            const details = document.getElementById('nodeDetails');
+            const nodeTitle = document.getElementById('nodeTitle');
+            const nodeContent = document.getElementById('nodeContent');
+            
+            nodeTitle.textContent = title;
+            nodeContent.innerHTML = getNodeContent(type);
+            
+            details.classList.add('visible');
+        }
+
+        function hideNodeDetails() {
+            document.getElementById('nodeDetails').classList.remove('visible');
+        }
+
+        function getNodeContent(type) {
+            // This would be populated with actual data
+            const content = {
+                assess: `
+                    <h4>Initial Assessment Details</h4>
+                    <p>Comprehensive evaluation of needs...</p>
+                `,
+                plan: `
+                    <h4>Selected Interventions</h4>
+                    <ul>
+                        <li>Reading Recovery - 3x per week</li>
+                        <li>Social Skills Group - Tuesday lunch</li>
+                    </ul>
+                `,
+                review: `
+                    <h4>Progress Review</h4>
+                    <p>Impact of interventions...</p>
+                    <h4>Next Steps</h4>
+                    <p>Recommended adjustments...</p>
+                `
+            };
+            return content[type] || '';
+        }
+
+        // Initialize with data entry view
+        document.addEventListener('DOMContentLoaded', () => {
+            switchView('data');
+        });
+    </script>
+</body>
+</html>
