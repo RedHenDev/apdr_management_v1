@@ -1,0 +1,26 @@
+Day,Period,Staff N,Staff R,Staff L,Issues
+Monday,1,aA,aJ,aL,
+Monday,2,aA,aJ,aL,
+Monday,3,-,"aJ, aB",aL,aA not covered
+Monday,4,-,"aJ, aGs11",aL,aA not covered
+Monday,5,aA,aJ,aL,aHub not covered
+Tuesday,1,aA,aJ,aL,
+Tuesday,2,aA,aJ,aL,
+Tuesday,3,-,"aJ, aB",aL,aA not covered
+Tuesday,4,-,"aJ, aGs11",aL,aA not covered
+Tuesday,5,aA,aJ,aL,aHub not covered
+Wednesday,1,-,aJ,aL,aA not covered
+Wednesday,2,-,aJ,aL,aA not covered
+Wednesday,3,-,"aJ, aB",aL,aA not covered
+Wednesday,4,-,"aJ, aGs11",aL,aA not covered
+Wednesday,5,-,aJ,aL,aA not covered
+Thursday,1,aN,aJ,aL,aA not covered
+Thursday,2,aN,aJ,aL,aA not covered
+Thursday,3,-,"aJ, aGs11","aL, aB",aA not covered
+Thursday,4,-,aJ,aL,"aA, aGs11 not covered"
+Thursday,5,-,aJ,aL,aA not covered
+Friday,1,aN,aJ,aL,aA not covered
+Friday,2,aN,aJ,aL,aA not covered
+Friday,3,-,"aJ, aGs11","aL, aA",
+Friday,4,-,aJ,aL,aA not covered
+Friday,5,aA,aJ,aL,aHub not covered
